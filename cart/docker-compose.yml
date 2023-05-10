@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+    database:
+        container_name: cart-db
+        image: postgres:alpine
+        environment:
+            POSTGRES_DB: cart
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        ports:
+            - '5430:5432'
+        volumes:
+            - '$PWD/docker/postgres/initdb.d/:/docker-entrypoint-initdb.d/'
