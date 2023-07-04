@@ -4,7 +4,7 @@ CREATE TABLE product (
     sku VARCHAR(64) PRIMARY KEY,
     amount TEXT NOT NULL,
     currency CHAR(3) NOT NULL,
-    quantity INT NOT NULl,
+    quantity INT,
     created_at timestamptz NOT NULL,
     updated_at timestamptz NULL
 );

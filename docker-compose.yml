@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+    rabbitmq:
+        container_name: shared-rabbitmq
+        image: rabbitmq:3-management
+        hostname: microservices
+        environment:
+            RABBITMQ_DEFAULT_USER: guest
+            RABBITMQ_DEFAULT_PASS: guest
+        ports:
+            - '8080:15672'
+        volumes:
+            - '$PWD/docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json'

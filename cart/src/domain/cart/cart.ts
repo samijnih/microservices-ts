@@ -2,6 +2,13 @@ import { ImmutableDateTime, Quantity, Sku } from '../shared';
 import { CustomerId } from '../customer/customer';
 import { AggregateRoot, AggregateRootId } from '../aggregate';
 import { Clock } from '../spi';
+import {
+    CartCreated,
+    ProductAdded,
+    ProductRemoved,
+    QuantityDecreased,
+    QuantityIncreased,
+} from './events.js';
 
 export class CartId extends AggregateRootId {}
 
@@ -36,7 +43,59 @@ export class Cart extends AggregateRoot {
         const now = clock.now();
         const expiresAt = clock.addHours(now, 1);
 
-        return new this(id, customerId, new Map(), expiresAt, now, now);
+        const instance = new this(
+            id,
+            customerId,
+            new Map(),
+            expiresAt,
+            now,
+            now,
+        );
+        instance.recordThat(
+            new CartCreated(
+                id.toString(),
+                customerId ? customerId.toString() : null,
+                expiresAt,
+                now,
+            ),
+        );
+
+        return instance;
+    }
+
+    addProduct(sku: Sku, quantity: Quantity, clock: Clock): void {
+        if (this.lines.has(sku)) {
+            return;
+        }
+
+        const now = clock.now();
+
+        this.recordThat(
+            new ProductAdded(
+                this.cartId.toString(),
+                this.customerId ? this.customerId.toString() : null,
+                sku.toString(),
+                quantity.value,
+                now,
+            ),
+        );
+    }
+
+    removeProduct(sku: Sku, clock: Clock): void {
+        if (!this.lines.has(sku)) {
+            return;
+        }
+
+        const now = clock.now();
+
+        this.recordThat(
+            new ProductRemoved(
+                this.cartId.toString(),
+                this.customerId ? this.customerId.toString() : null,
+                sku.toString(),
+                now,
+            ),
+        );
     }
 
     changeQuantity(sku: Sku, quantity: Quantity, clock: Clock): void {
@@ -44,11 +103,33 @@ export class Cart extends AggregateRoot {
             return;
         }
 
-        this.lines.set(
-            sku,
-            this.lines.get(sku)!.changeQuantity(quantity, clock),
-        );
-        this.updatedAt = clock.now();
+        const line = this.lines.get(sku)!;
+        const oldQuantity = line.quantity;
+        const now = clock.now();
+
+        if (oldQuantity.equals(quantity)) {
+            return;
+        }
+        if (oldQuantity.lowerThan(quantity)) {
+            this.recordThat(
+                new QuantityIncreased(
+                    this.cartId.toString(),
+                    quantity.value,
+                    now,
+                ),
+            );
+        } else {
+            this.recordThat(
+                new QuantityDecreased(
+                    this.cartId.toString(),
+                    quantity.value,
+                    now,
+                ),
+            );
+        }
+
+        this.lines.set(sku, line.changeQuantity(quantity, clock));
+        this.updatedAt = now;
     }
 
     id(): CartId {

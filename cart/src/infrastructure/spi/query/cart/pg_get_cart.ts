@@ -1,11 +1,11 @@
-import { Connection } from '../database/connection.js';
+import { Connection } from '../../database/connection.js';
 import {
     Cart,
     CartId,
     CartLine,
     CartNotFound,
     GetCartQuery,
-} from '../../../domain/cart/features/get.js';
+} from '../../../../domain/cart/features/get.js';
 import * as console from 'console';
 
 type LineRow = {
@@ -58,6 +58,7 @@ export default class GetCartPostgresQuery implements GetCartQuery {
                     customerId: cart.customer_id,
                     lines: cart.lines.map((line: LineRow): CartLine => {
                         return {
+                            sku: line.sku,
                             quantity: line.quantity,
                             price: {
                                 amount: line.amount,
