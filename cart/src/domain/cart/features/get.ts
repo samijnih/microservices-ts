@@ -1,5 +1,6 @@
 export type CartId = NonNullable<string>;
 export type CartLine = {
+    sku: string;
     quantity: number;
     price: { amount: string; currency: string };
     createdAt: string;

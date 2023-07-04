@@ -41,32 +41,6 @@ export class Sku extends AggregateRootId {
     }
 }
 
-export class NegativeQuantity extends Error implements DomainError {
-    constructor(value: NonNullable<number>) {
-        super(`Quantity "${value}" cannot be negative.`);
-    }
-}
-
-export class Quantity {
-    constructor(readonly value: NonNullable<number>) {
-        if (!(value >= 0)) {
-            throw new NegativeQuantity(value);
-        }
-    }
-
-    equals(other: this): boolean {
-        return this.value === other.value;
-    }
-
-    toString(): string {
-        return this.value.toString();
-    }
-
-    lowerThan(other: this): boolean {
-        return this.value < other.value;
-    }
-}
-
 export class InvalidAmount extends Error implements DomainError {
     constructor(value: NonNullable<string>) {
         super(`Amount "${value}" is invalid.`);
